@@ -2,29 +2,39 @@ from diff_match_patch import diff_match_patch
 import typing
 
 
-def file_comparing_str(file1: typing.TextIO, file2: typing.TextIO) -> (float, float):
+def file_comparing(file1: typing.IO, file2: typing.IO, mode="b") -> (float, float):
     content1 = file1.read()
     content2 = file2.read()
 
     model = diff_match_patch()
 
-    diff = model.diff_main(content1, content2)
-    diff = model.diff_main(content1, content2)
-    delete, insert, equal = __compute_fractions_str(diff)
-    return equal / (delete + equal), equal / (insert + equal)
+    if mode == "b":
+        diff = model.diff_main(content1.hex(" "), content2.hex(" "))
+        equality = __compute_equality_bytes(diff)
+    else:
+        diff = model.diff_main(content1, content2)
+        equality = __compute_equality_str(diff)
+
+    return equality / len(content1), equality / len(content2)
 
 
-def __compute_fractions_str(diff: list[tuple[int, str]]) -> (int, int, int):
+def __compute_equality_str(diff: list[tuple[int, str]]) -> int:
     equality_cnt = 0
-    deletion_cnt = 0
-    insertion_cnt = 0
-    for code, bytes_str in diff:
-        cnt = len(bytes_str)
+    for code, word in diff:
+        cnt = len(word)
         if code == 0:
             equality_cnt += cnt
-        if code == 1:
-            insertion_cnt += cnt
-        if code == -1:
-            deletion_cnt += cnt
-    return deletion_cnt, insertion_cnt, equality_cnt
+    return equality_cnt
 
+
+def __compute_equality_bytes(diff: list[tuple[int, str]]) -> int:
+    equality_cnt = 0
+    for code, bytes_str in diff:
+        bits = bytes_str.split()
+        if code == 0:
+            if len(bits) > 0 and len(bits[0]) < 2:
+                bits.pop(0)
+            if len(bits) > 0 and len(bits[-1]) < 2:
+                bits.pop(-1)
+            equality_cnt += len(bits)
+    return equality_cnt
