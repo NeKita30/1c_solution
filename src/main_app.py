@@ -2,16 +2,18 @@ from diff_match_patch import diff_match_patch
 import typing
 
 
-def file_comparing(file1: typing.IO, file2: typing.IO, mode="b") -> (float, float):
+def file_comparing(file1: typing.IO, file2: typing.IO, mode) -> (float, float):
     content1 = file1.read()
     content2 = file2.read()
 
     model = diff_match_patch()
 
+    equality = 0
+
     if mode == "b":
         diff = model.diff_main(content1.hex(" "), content2.hex(" "))
         equality = __compute_equality_bytes(diff)
-    else:
+    elif mode == "s":
         diff = model.diff_main(content1, content2)
         equality = __compute_equality_str(diff)
 
