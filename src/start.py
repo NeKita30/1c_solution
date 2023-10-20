@@ -23,7 +23,7 @@ for filename1 in os.listdir(args.dir1):
             mode = "s"
         per1, per2 = main_app.file_comparing(file1, file2, mode)
 
-        if per1 >= args.criterion or per2 >= args.criterion:
+        if (per1 >= (args.criterion / 100)) and (per2 >= (args.criterion / 100)):
             print(f"{fullpath1} - {fullpath2}")
         else:
             print(f"{fullpath1} - {fullpath2} - {min(per1, per2)*100:.2f}%")
